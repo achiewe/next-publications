@@ -1,19 +1,5 @@
+import { PostCardProps } from "@/app/types/interfaces";
 import Link from "next/link";
-
-interface Post {
-  id: number;
-  title: string;
-  body: string;
-}
-
-interface Author {
-  username: string;
-}
-
-interface PostCardProps {
-  post: Post;
-  author?: Author; // Optional author
-}
 
 export default function PostCard({ post, author }: PostCardProps) {
   return (
@@ -21,7 +7,7 @@ export default function PostCard({ post, author }: PostCardProps) {
       <h2>Title: {post.title}</h2>
       <p>{post.body}</p>
       <p>Author: {author?.username || "Unknown"}</p>
-      <Link href={`/post/${post.id}`} className="cursor-pointer">
+      <Link href={`/post-detail/${post.id}`} className="cursor-pointer">
         View Details...
       </Link>
     </div>
