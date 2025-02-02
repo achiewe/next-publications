@@ -29,13 +29,15 @@ export default function PostDetails() {
   return (
     <div className="h-screen bg-[#918a8a] gap-[80px] px-[30px] py-[100px] flex flex-col justify-start items-center">
       <h1 className="text-2xl font-bold text-center">{data.post.title}</h1>
-      <p className="mt-2">{data.post.body}</p>
+      <p className="max-w-[1000px]">{data.post.body}</p>
       <div className="mt-4">
         <h2 className="text-xl font-semibold">
           Author: {data.author.name} ({data.author.username})
         </h2>
         <p>
-          📍 Address: {data.author.address.street}, {data.author.address.city}
+          📍 Address:{" "}
+          {data.author?.address?.street ? data.author?.address?.street : "araa"}
+          , {data.author.address.city ? data.author.address.city : "araa"}
         </p>
         <p>📞 Phone: {data.author.phone}</p>
       </div>

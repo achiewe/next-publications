@@ -6,28 +6,40 @@ import { Author, Post, PostDetailsData } from "../types/interfaces";
 export function usePosts() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [authors, setAuthors] = useState<Record<number, Author>>({});
+  const [authors, setAuthors] = useState<Record<string, Author>>({});
   const [page, setPage] = useState<number>(1);
   const [posts, setPosts] = useState<Post[]>([]);
   const [hasMore, setHasMore] = useState<boolean>(true);
 
   // Fetch posts with pagination
   const fetchPosts = useCallback(async (pageNum: number) => {
-    if (loading || !hasMore) return;
-
-    setLoading(true);
+    setLoading((prevLoading) => {
+      if (prevLoading || !hasMore) return true; // Prevent multiple requests
+      return prevLoading;
+    });
+  
     try {
       const res = await fetch(`https://jsonplaceholder.typicode.com/posts?_limit=10&_page=${pageNum}`);
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch posts: ${res.status}`);
+      }
+  
       const data: Post[] = await res.json();
-
-      if (data.length === 0) setHasMore(false); // Stop fetching if no more posts
-      setPosts((prev) => [...new Map([...prev, ...data].map((p) => [p.id, p])).values()]); 
+  
+      setPosts((prev) => {
+        const uniquePosts = new Map([...prev, ...data].map((p) => [p.id, p]));
+        return Array.from(uniquePosts.values());
+      });
+  
+      setHasMore(data.length > 0); // Set `hasMore` based on fetched data
     } catch (error) {
       console.error("Error fetching posts:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [loading, hasMore]);
-
+  }, []);
+  
   useEffect(() => {
     fetchPosts(page);
   }, [page, fetchPosts]);
@@ -62,20 +74,19 @@ export function usePosts() {
 
   // Fetch single post details
   const fetchPostDetails = async (postId: string): Promise<PostDetailsData> => {
-    try {
-      const [postRes, authorRes] = await Promise.all([
-        fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`),
-        fetch(`https://jsonplaceholder.typicode.com/users/${postId}`),
-      ]);
-
-      const postData: Post = await postRes.json();
-      const authorData: Author = await authorRes.json();
-
-      return { post: postData, author: authorData };
-    } catch (error) {
-      console.error("Error fetching post details:", error);
-      return { post: null, author: null };
+    if (authors[postId]) {
+      return { post: posts.find(p => p.id === parseInt(postId)) || null, author: authors[postId] };
     }
+  
+    const postRes = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`);
+    const postData: Post = await postRes.json();
+  
+    const authorRes = await fetch(`https://jsonplaceholder.typicode.com/users/${postData.userId}`);
+    const authorData: Author = await authorRes.json();
+  
+    setAuthors((prev) => ({ ...prev, [postData.userId]: authorData }));
+  
+    return { post: postData, author: authorData };
   };
 
 
@@ -83,19 +94,20 @@ export function usePosts() {
 
   // Infinite Scroll Optimization (Debounced)
   useEffect(() => {
-    let debounceTimer: NodeJS.Timeout;
+    let timeout: NodeJS.Timeout;
+    
     const handleScroll = () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
           setPage((prev) => prev + 1);
         }
-      }, 200);
+      }, 500); // Increased debounce time to prevent too many calls
     };
-
+  
     window.addEventListener("scroll", handleScroll);
     return () => {
-      clearTimeout(debounceTimer);
+      clearTimeout(timeout);
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
