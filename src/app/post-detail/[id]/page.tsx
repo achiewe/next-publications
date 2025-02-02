@@ -27,7 +27,7 @@ export default function PostDetails() {
   if (!data) return <p>Post not found</p>;
 
   return (
-    <div className="h-screen bg-[#918a8a] gap-[80px] px-[30px] py-[100px] flex flex-col justify-start items-center">
+    <div className="h-screen bg-[#918a8a] gap-[80px] px-[30px] lg:px-0 py-[100px] flex flex-col justify-start items-center">
       <h1 className="text-2xl font-bold text-center">{data.post.title}</h1>
       <p className="max-w-[1000px]">{data.post.body}</p>
       <div className="mt-4">
