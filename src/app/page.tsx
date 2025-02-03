@@ -5,7 +5,8 @@ import SearchBar from "./components/SearchBar/SearchBar";
 import { usePosts } from "./hooks/usePosts";
 
 export default function Home() {
-  const { filteredPosts, setSearchTerm, authors } = usePosts();
+  const { filteredPosts, setSearchTerm, authors, loading, hasMore } =
+    usePosts();
   return (
     <div className="bg-[#918a8a] w-full min-h-screen pt-4 flex flex-col items-center gap-[20px]">
       <Header />
@@ -15,6 +16,7 @@ export default function Home() {
           <PostCard key={post.id} post={post} author={authors[post.userId]} />
         ))}
       </div>
+      {!loading && hasMore && <p>Loading more posts...</p>}
     </div>
   );
 }

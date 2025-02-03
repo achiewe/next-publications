@@ -38,7 +38,7 @@ export function usePosts() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hasMore]);
   
   useEffect(() => {
     fetchPosts(page);
@@ -121,5 +121,5 @@ export function usePosts() {
     ? posts.filter((post) => post.title.toLowerCase().includes(searchTerm.toLowerCase()))
     : posts;
 
-  return { filteredPosts, setSearchTerm, loading, setPage, authors, fetchPostDetails };
+  return { filteredPosts, setSearchTerm, loading, setPage, authors, fetchPostDetails, hasMore };
 }
